@@ -3,7 +3,6 @@ package python
 import (
 	"bufio"
 	"fmt"
-	"strings"
 
 	"github.com/anchore/syft/syft/pkg"
 
@@ -113,7 +112,7 @@ func (c *PackageCataloger) catalogEggOrWheel(entry *packageEntry) (*pkg.Package,
 func (c *PackageCataloger) assembleEggOrWheelMetadata(entry *packageEntry) (*pkg.PythonPackageMetadata, []source.Location, error) {
 	var sources = []source.Location{entry.Metadata.Location}
 
-	metadata, err := parseWheelOrEggMetadata(entry.Metadata.Location.Path, strings.NewReader(entry.Metadata.Contents))
+	metadata, err := parseWheelOrEggMetadata(entry.Metadata.Location.Path, entry.Metadata.Contents)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -147,7 +146,7 @@ func (c *PackageCataloger) processRecordFiles(entry *source.FileData) (files []p
 		sources = append(sources, entry.Location)
 
 		// parse the record contents
-		records, err := parseWheelOrEggRecord(strings.NewReader(entry.Contents))
+		records, err := parseWheelOrEggRecord(entry.Contents)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -165,7 +164,7 @@ func (c *PackageCataloger) processTopLevelPackages(entry *source.FileData) (pkgs
 
 	sources = append(sources, entry.Location)
 
-	scanner := bufio.NewScanner(strings.NewReader(entry.Contents))
+	scanner := bufio.NewScanner(entry.Contents)
 	for scanner.Scan() {
 		pkgs = append(pkgs, scanner.Text())
 	}

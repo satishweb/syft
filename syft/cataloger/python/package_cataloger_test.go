@@ -71,32 +71,20 @@ func newTestResolver(metaPath, recordPath, topPath string) *pythonTestResolverMo
 	}
 }
 
-func (r *pythonTestResolverMock) FileContentsByLocation(location source.Location) (string, error) {
+func (r *pythonTestResolverMock) FileContentsByLocation(location source.Location) (io.ReadCloser, error) {
 	switch {
 	case r.topLevelRef != nil && location.Path == r.topLevelRef.Path:
-		b, err := ioutil.ReadAll(r.topLevelReader)
-		if err != nil {
-			return "", err
-		}
-		return string(b), nil
+		return ioutil.NopCloser(r.topLevelReader), nil
 	case location.Path == r.metadataRef.Path:
-		b, err := ioutil.ReadAll(r.metadataReader)
-		if err != nil {
-			return "", err
-		}
-		return string(b), nil
+		return ioutil.NopCloser(r.metadataReader), nil
 	case location.Path == r.recordRef.Path:
-		b, err := ioutil.ReadAll(r.recordReader)
-		if err != nil {
-			return "", err
-		}
-		return string(b), nil
+		return ioutil.NopCloser(r.recordReader), nil
 	}
-	return "", fmt.Errorf("invalid value given")
+	return nil, fmt.Errorf("invalid value given")
 }
 
-func (r *pythonTestResolverMock) MultipleFileContentsByLocation(locations []source.Location) (map[source.Location]string, error) {
-	var results = make(map[source.Location]string)
+func (r *pythonTestResolverMock) MultipleFileContentsByLocation(locations []source.Location) (map[source.Location]io.ReadCloser, error) {
+	var results = make(map[source.Location]io.ReadCloser)
 	var err error
 	for _, l := range locations {
 		results[l], err = r.FileContentsByLocation(l)
